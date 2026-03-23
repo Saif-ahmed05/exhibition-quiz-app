@@ -1,0 +1,912 @@
+/* ─── RESET & BASE ─────────────────────────────────────────────────────────── */
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  --bg: #0d0d1a;
+  --card: #141428;
+  --card-border: rgba(255, 255, 255, 0.08);
+  --gold: #f5c842;
+  --gold-dim: rgba(245, 200, 66, 0.15);
+  --text: #f0f0f0;
+  --muted: #7a7a9a;
+  --green: #4ade80;
+  --red: #f87171;
+  --blue: #60a5fa;
+  --radius: 14px;
+  --shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+}
+
+html, body, #root {
+  height: 100%;
+  width: 100%;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ─── SCREEN CONTAINERS ────────────────────────────────────────────────────── */
+
+.screen {
+  min-height: 100vh;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.host-screen {
+  align-items: flex-start;
+  padding: 32px;
+}
+
+.player-screen {
+  align-items: center;
+  padding: 16px;
+}
+
+/* ─── HOME SCREEN ──────────────────────────────────────────────────────────── */
+
+.home-content {
+  text-align: center;
+  max-width: 560px;
+  width: 100%;
+}
+
+.home-title {
+  font-size: clamp(2.5rem, 8vw, 5rem);
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  color: var(--gold);
+  text-shadow: 0 0 40px rgba(245, 200, 66, 0.4);
+  margin-bottom: 12px;
+}
+
+.home-subtitle {
+  font-size: 1.2rem;
+  color: var(--muted);
+  margin-bottom: 48px;
+}
+
+.home-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  align-items: center;
+}
+
+.btn-host,
+.btn-player {
+  width: 100%;
+  max-width: 340px;
+  padding: 24px 32px;
+  border-radius: var(--radius);
+  border: 2px solid var(--card-border);
+  background: var(--card);
+  color: var(--text);
+  font-size: 1.4rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  transition: border-color 0.2s, transform 0.15s, background 0.2s;
+}
+
+.btn-host:hover { border-color: var(--gold); background: var(--gold-dim); transform: translateY(-2px); }
+.btn-player:hover { border-color: var(--blue); background: rgba(96, 165, 250, 0.1); transform: translateY(-2px); }
+
+.btn-icon { font-size: 2rem; }
+.btn-hint { font-size: 0.85rem; font-weight: 400; color: var(--muted); }
+
+/* ─── CARDS ────────────────────────────────────────────────────────────────── */
+
+.setup-card,
+.player-card {
+  background: var(--card);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius);
+  padding: 32px;
+  width: 100%;
+  max-width: 520px;
+  box-shadow: var(--shadow);
+}
+
+.player-card-center {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+/* ─── BUTTONS ──────────────────────────────────────────────────────────────── */
+
+.btn {
+  border: none;
+  border-radius: 10px;
+  padding: 12px 24px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.15s, transform 0.1s;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.btn:not(:disabled):hover { opacity: 0.9; transform: translateY(-1px); }
+.btn:not(:disabled):active { transform: translateY(0); }
+
+.btn-primary { background: var(--gold); color: #1a1400; }
+.btn-secondary { background: rgba(255,255,255,0.1); color: var(--text); border: 1px solid var(--card-border); }
+.btn-danger { background: var(--red); color: #fff; }
+.btn-ghost { background: transparent; color: var(--muted); border: 1px solid var(--card-border); }
+.btn-large { width: 100%; justify-content: center; padding: 16px 24px; font-size: 1.15rem; margin-top: 8px; }
+
+.btn-set {
+  padding: 10px 20px;
+  border-radius: 8px;
+  border: 2px solid var(--card-border);
+  background: transparent;
+  color: var(--text);
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.btn-set.active { border-color: var(--gold); background: var(--gold-dim); color: var(--gold); }
+.btn-set:hover:not(.active) { border-color: rgba(255,255,255,0.2); }
+
+.btn-back {
+  background: none;
+  border: none;
+  color: var(--muted);
+  font-size: 0.95rem;
+  cursor: pointer;
+  padding: 4px 0;
+  margin-bottom: 16px;
+  display: block;
+}
+.btn-back:hover { color: var(--text); }
+
+/* ─── FORM ELEMENTS ────────────────────────────────────────────────────────── */
+
+.form-group { display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; }
+.form-group label { font-size: 0.85rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; }
+
+.input {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid var(--card-border);
+  border-radius: 8px;
+  padding: 12px 16px;
+  font-size: 1rem;
+  color: var(--text);
+  width: 100%;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.input:focus { border-color: var(--gold); }
+.input-large { font-size: 1.2rem; padding: 14px 18px; text-align: center; letter-spacing: 0.1em; }
+
+.room-code-row { display: flex; gap: 8px; align-items: stretch; }
+.room-code-row .input { flex: 1; }
+
+.set-list { display: flex; gap: 8px; flex-wrap: wrap; }
+
+/* ─── SETUP TITLE ──────────────────────────────────────────────────────────── */
+
+.setup-title { font-size: 1.6rem; font-weight: 800; margin-bottom: 24px; }
+.player-title { font-size: 1.8rem; font-weight: 800; margin-bottom: 24px; }
+
+/* ─── WAITING STAGE (host) ─────────────────────────────────────────────────── */
+
+.stage-waiting {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 24px;
+  padding: 40px 20px;
+}
+
+.stage-label {
+  font-size: 1rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.room-code-display {
+  font-size: clamp(4rem, 14vw, 10rem);
+  font-weight: 900;
+  letter-spacing: 0.15em;
+  color: var(--gold);
+  text-shadow: 0 0 60px rgba(245, 200, 66, 0.5);
+  line-height: 1;
+}
+
+.room-code-hint {
+  color: var(--muted);
+  font-size: 1.1rem;
+}
+
+.player-list {
+  background: var(--card);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius);
+  padding: 20px 24px;
+  width: 100%;
+  max-width: 400px;
+  text-align: left;
+}
+
+.player-list-title { font-size: 0.85rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 12px; }
+
+.player-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 0;
+  font-size: 1.1rem;
+  border-bottom: 1px solid var(--card-border);
+}
+.player-item:last-child { border-bottom: none; }
+
+.player-dot {
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  background: var(--green);
+  flex-shrink: 0;
+}
+
+.host-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+  max-width: 320px;
+  margin-top: 8px;
+}
+
+/* ─── QUESTION STAGE (host) ────────────────────────────────────────────────── */
+
+.stage-question {
+  width: 100%;
+  max-width: 1100px;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+.question-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.question-number {
+  font-size: 1.1rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.countdown {
+  font-size: 2rem;
+  font-weight: 800;
+  color: var(--gold);
+  min-width: 64px;
+  text-align: right;
+}
+
+.countdown-urgent { color: var(--red); animation: pulse 0.6s ease infinite alternate; }
+
+@keyframes pulse {
+  from { opacity: 1; }
+  to { opacity: 0.5; }
+}
+
+.countdown-big {
+  font-size: clamp(3rem, 8vw, 6rem);
+  font-weight: 900;
+  color: var(--gold);
+  text-align: center;
+  line-height: 1;
+}
+
+.question-text {
+  font-size: clamp(1.8rem, 4vw, 3.2rem);
+  font-weight: 700;
+  line-height: 1.3;
+  text-align: center;
+}
+
+.options-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.option-card {
+  background: var(--card);
+  border: 2px solid var(--card-border);
+  border-radius: var(--radius);
+  padding: 24px 28px;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  font-size: clamp(1.1rem, 2.5vw, 1.8rem);
+  font-weight: 600;
+}
+
+.option-1 { border-color: rgba(248, 113, 113, 0.4); }
+.option-2 { border-color: rgba(96, 165, 250, 0.4); }
+.option-3 { border-color: rgba(74, 222, 128, 0.4); }
+.option-4 { border-color: rgba(250, 204, 21, 0.4); }
+
+.option-num {
+  font-size: clamp(1.4rem, 3vw, 2.4rem);
+  font-weight: 900;
+  min-width: 40px;
+  text-align: center;
+  color: var(--muted);
+}
+.option-1 .option-num { color: #f87171; }
+.option-2 .option-num { color: #60a5fa; }
+.option-3 .option-num { color: #4ade80; }
+.option-4 .option-num { color: #facc15; }
+
+/* ─── CODE ENTRY STAGE (host) ──────────────────────────────────────────────── */
+
+.stage-code-entry {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 20px;
+  padding: 20px;
+}
+
+.code-entry-title {
+  font-size: clamp(2rem, 6vw, 4.5rem);
+  font-weight: 900;
+  color: var(--gold);
+  letter-spacing: 0.05em;
+}
+
+.code-entry-hint {
+  font-size: 1.3rem;
+  color: var(--muted);
+}
+
+.submission-status {
+  font-size: clamp(1.4rem, 4vw, 2.5rem);
+  font-weight: 700;
+}
+
+.submission-count { color: var(--green); }
+.submission-label { color: var(--muted); }
+
+.submission-names {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+}
+
+.submitted-badge {
+  background: rgba(74, 222, 128, 0.15);
+  border: 1px solid rgba(74, 222, 128, 0.3);
+  color: var(--green);
+  padding: 6px 14px;
+  border-radius: 99px;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+/* ─── RESULT STAGE (host) ──────────────────────────────────────────────────── */
+
+.stage-result {
+  width: 100%;
+  max-width: 900px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+  padding: 32px 20px;
+  text-align: center;
+}
+
+.result-label {
+  font-size: 0.9rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.correct-code-display {
+  display: flex;
+  gap: 12px;
+}
+
+.code-digit {
+  width: 72px;
+  height: 72px;
+  background: var(--card);
+  border: 2px solid var(--gold);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.4rem;
+  font-weight: 900;
+  color: var(--gold);
+}
+
+.winner-banner {
+  font-size: clamp(2rem, 6vw, 4rem);
+  font-weight: 900;
+  color: var(--gold);
+  text-shadow: 0 0 40px rgba(245, 200, 66, 0.5);
+  padding: 20px 40px;
+  border: 2px solid var(--gold);
+  border-radius: var(--radius);
+  background: var(--gold-dim);
+}
+
+.no-winner {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: var(--muted);
+}
+
+.result-type-label { color: var(--muted); font-size: 1rem; }
+
+.finalist-pool { width: 100%; }
+.finalist-title { color: var(--muted); font-size: 0.85rem; text-transform: uppercase; margin-bottom: 8px; }
+.finalist-list { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+
+.finalist-badge {
+  background: rgba(96, 165, 250, 0.15);
+  border: 1px solid rgba(96, 165, 250, 0.3);
+  color: var(--blue);
+  padding: 8px 18px;
+  border-radius: 99px;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.all-submissions { width: 100%; max-width: 480px; }
+.submissions-title { color: var(--muted); font-size: 0.85rem; text-transform: uppercase; margin-bottom: 8px; }
+
+.submission-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px 16px;
+  border-radius: 8px;
+  margin-bottom: 4px;
+  background: rgba(255,255,255,0.03);
+  font-size: 1rem;
+}
+
+.submission-winner { background: var(--gold-dim); border: 1px solid rgba(245, 200, 66, 0.3); }
+.submission-code { font-family: monospace; letter-spacing: 0.2em; color: var(--gold); font-weight: 700; }
+
+/* ─── PLAYER SCREEN ────────────────────────────────────────────────────────── */
+
+.player-status-title { font-size: 1.8rem; font-weight: 800; }
+.player-name-display { font-size: 1.3rem; color: var(--gold); font-weight: 700; }
+
+.status-icon { font-size: 3rem; }
+
+.player-list-small {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+  margin-top: 8px;
+}
+
+.player-chip {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid var(--card-border);
+  padding: 6px 14px;
+  border-radius: 99px;
+  font-size: 0.9rem;
+}
+
+.player-chip-you {
+  background: var(--gold-dim);
+  border-color: rgba(245, 200, 66, 0.4);
+  color: var(--gold);
+}
+
+.question-progress {
+  font-size: 1rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.player-countdown {
+  font-size: 4rem;
+  font-weight: 900;
+  color: var(--gold);
+}
+
+.watch-icon { font-size: 3.5rem; }
+.watch-title { font-size: 1.8rem; font-weight: 800; }
+.watch-hint { color: var(--muted); font-size: 0.95rem; max-width: 280px; }
+
+.digit-reminder {
+  display: flex;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.digit-slot {
+  width: 48px;
+  height: 48px;
+  border: 2px solid var(--card-border);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--muted);
+}
+
+.digit-slot-done { border-color: var(--green); color: var(--green); background: rgba(74, 222, 128, 0.1); }
+.digit-slot-active { border-color: var(--gold); color: var(--gold); background: var(--gold-dim); animation: pulse 0.6s ease infinite alternate; }
+
+/* ─── CODE ENTRY (player) ──────────────────────────────────────────────────── */
+
+.code-entry-heading {
+  font-size: 1.6rem;
+  font-weight: 800;
+  text-align: center;
+}
+
+.code-entry-sub {
+  color: var(--muted);
+  font-size: 0.95rem;
+  text-align: center;
+  line-height: 1.6;
+}
+
+.code-boxes {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin: 16px 0 8px;
+}
+
+.code-box {
+  width: 60px;
+  height: 70px;
+  background: rgba(255,255,255,0.05);
+  border: 2px solid var(--card-border);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  font-weight: 900;
+  color: var(--gold);
+  transition: border-color 0.15s;
+}
+
+.code-box-filled { border-color: var(--gold); background: var(--gold-dim); }
+
+/* Blinking cursor indicator on the next empty box */
+.code-box-cursor {
+  border-color: var(--gold);
+  animation: pulse 0.8s ease infinite alternate;
+}
+
+/* ── Code entry area (wraps boxes + real input) ────────────────────────────── */
+
+.code-entry-area {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  cursor: pointer;
+}
+
+.code-boxes {
+  /* override the old margin-based rule */
+  margin: 0;
+  cursor: pointer;
+}
+
+/* The real visible input — replaces the old invisible one.
+   Large, gold-bordered, always tappable on mobile. */
+.code-text-input {
+  width: 200px;
+  text-align: center;
+  font-size: 2rem;
+  font-weight: 900;
+  letter-spacing: 0.4em;
+  padding: 14px 10px;
+  border: 2px solid var(--gold);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--gold);
+  outline: none;
+  cursor: pointer;
+  -webkit-appearance: none;
+  caret-color: var(--gold);
+}
+
+.code-text-input:focus {
+  box-shadow: 0 0 0 3px rgba(245, 200, 66, 0.25);
+}
+
+.input-hint {
+  font-size: 0.8rem;
+  color: var(--muted);
+  text-align: center;
+}
+
+/* ── Reconnect UI ──────────────────────────────────────────────────────────── */
+
+.room-code-small {
+  font-size: clamp(2rem, 8vw, 3.5rem);
+  margin: 12px 0 20px;
+}
+
+/* ── Player countdown (centered on player screen) ─────────────────────────── */
+
+.player-countdown-center {
+  text-align: center;
+  width: 100%;
+}
+
+/* ─── RESULT (player) ──────────────────────────────────────────────────────── */
+
+.result-trophy { font-size: 4rem; }
+.result-win-title { font-size: 2.4rem; font-weight: 900; color: var(--gold); }
+
+.result-code-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: rgba(255,255,255,0.04);
+  padding: 10px 20px;
+  border-radius: 10px;
+  width: 100%;
+  justify-content: space-between;
+}
+
+.result-correct-code, .result-my-code {
+  font-family: monospace;
+  font-size: 1.4rem;
+  font-weight: 800;
+  letter-spacing: 0.2em;
+  color: var(--gold);
+}
+
+.submitted-code-display {
+  font-size: 3rem;
+  font-weight: 900;
+  letter-spacing: 0.3em;
+  color: var(--gold);
+}
+
+.result-footer {
+  color: var(--muted);
+  font-size: 0.85rem;
+  text-align: center;
+}
+
+/* ─── PROGRESSIVE DIGIT BOXES (player — one per question) ─────────────────── */
+
+.prog-digits {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  margin: 16px 0 8px;
+  cursor: pointer;
+}
+
+.prog-box {
+  width: 64px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.prog-box-label {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.prog-box-value {
+  width: 60px;
+  height: 68px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid var(--card-border);
+  border-radius: 12px;
+  font-size: 2rem;
+  font-weight: 900;
+  color: var(--muted);
+  background: rgba(255,255,255,0.03);
+  transition: all 0.2s;
+}
+
+/* Active: the one being answered now */
+.prog-box-active .prog-box-value {
+  border-color: var(--gold);
+  color: var(--gold);
+  background: var(--gold-dim);
+  animation: pulse 0.8s ease infinite alternate;
+}
+
+.prog-box-active .prog-box-label {
+  color: var(--gold);
+}
+
+/* Done: answered, locked */
+.prog-box-done .prog-box-value {
+  border-color: rgba(255,255,255,0.12);
+  color: var(--muted);
+  background: rgba(255,255,255,0.04);
+}
+
+.prog-box-done.prog-box-filled .prog-box-value {
+  border-color: var(--green);
+  color: var(--green);
+  background: rgba(74, 222, 128, 0.08);
+}
+
+/* Future: not yet reachable */
+.prog-box-future .prog-box-value {
+  border-color: rgba(255,255,255,0.05);
+  color: rgba(255,255,255,0.15);
+  background: rgba(255,255,255,0.01);
+}
+
+/* Filled active: digit entered for current question */
+.prog-box-active.prog-box-filled .prog-box-value {
+  border-color: var(--gold);
+  color: var(--gold);
+  background: var(--gold-dim);
+}
+
+/* Hidden input for digit capture */
+.prog-hidden-input {
+  width: 120px;
+  text-align: center;
+  font-size: 1.6rem;
+  font-weight: 900;
+  letter-spacing: 0.3em;
+  padding: 10px;
+  border: 2px solid var(--gold);
+  border-radius: 12px;
+  background: rgba(255,255,255,0.05);
+  color: var(--gold);
+  outline: none;
+  caret-color: var(--gold);
+  -webkit-appearance: none;
+}
+
+.prog-hidden-input:focus {
+  box-shadow: 0 0 0 3px rgba(245, 200, 66, 0.25);
+}
+
+/* ─── RESULT COMPARISON (player) ──────────────────────────────────────────── */
+
+.result-compare {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 12px 0;
+}
+
+.result-compare-row {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.result-compare-label {
+  font-size: 0.8rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.result-compare-digits {
+  display: flex;
+  gap: 8px;
+}
+
+.result-cdigit {
+  width: 52px;
+  height: 58px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  font-size: 1.6rem;
+  font-weight: 900;
+  font-family: monospace;
+}
+
+.result-cdigit-match {
+  background: rgba(74, 222, 128, 0.15);
+  border: 2px solid var(--green);
+  color: var(--green);
+}
+
+.result-cdigit-wrong {
+  background: rgba(248, 113, 113, 0.12);
+  border: 2px solid var(--red);
+  color: var(--red);
+}
+
+.result-cdigit-correct {
+  background: var(--gold-dim);
+  border: 2px solid var(--gold);
+  color: var(--gold);
+}
+
+.result-score {
+  font-size: 1.3rem;
+  font-weight: 800;
+  text-align: center;
+  color: var(--text);
+}
+
+/* ─── HOST SUBMISSION SCORE ───────────────────────────────────────────────── */
+
+.submission-score {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--blue);
+  min-width: 36px;
+  text-align: center;
+}
+
+/* ─── SHARED UTILITIES ─────────────────────────────────────────────────────── */
+
+.muted { color: var(--muted); font-size: 0.95rem; }
+.error-msg { color: var(--red); font-size: 0.9rem; margin-top: 4px; }
+
+/* ─── RESPONSIVE ───────────────────────────────────────────────────────────── */
+
+@media (max-width: 600px) {
+  .host-screen { padding: 16px; }
+  .options-grid { grid-template-columns: 1fr; }
+  .code-digit { width: 56px; height: 56px; font-size: 1.8rem; }
+  .correct-code-display { gap: 8px; }
+  .winner-banner { font-size: 1.8rem; padding: 14px 20px; }
+  .prog-box-value { width: 52px; height: 58px; font-size: 1.6rem; }
+  .prog-digits { gap: 8px; }
+  .result-cdigit { width: 44px; height: 50px; font-size: 1.3rem; }
+}

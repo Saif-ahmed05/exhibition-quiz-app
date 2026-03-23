@@ -1,0 +1,48 @@
+{
+  "rules": {
+    "rooms": {
+      "$roomCode": {
+        ".read": true,
+        ".write": "!data.exists()",
+        "stage": {
+          ".write": "data.parent().exists()",
+          ".validate": "newData.isString() && (newData.val() === 'waiting' || newData.val() === 'question' || newData.val() === 'code_entry' || newData.val() === 'result')"
+        },
+        "questionIndex": {
+          ".write": "data.parent().exists()",
+          ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 3"
+        },
+        "questionEndsAt": {
+          ".write": "data.parent().exists()"
+        },
+        "codeEntryEndsAt": {
+          ".write": "data.parent().exists()"
+        },
+        "result": {
+          ".write": "data.parent().exists()"
+        },
+        "roundId": {
+          ".write": "data.parent().exists()",
+          ".validate": "newData.isNumber()"
+        },
+        "setId": {
+          ".write": "data.parent().exists()",
+          ".validate": "newData.isString()"
+        },
+        "players": {
+          ".write": "data.parent().exists()",
+          "$playerId": {
+            ".write": true,
+            ".validate": "newData.hasChildren(['name', 'joinedAt'])",
+            "name": {
+              ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 20"
+            },
+            "submittedCode": {
+              ".write": "data.val() === null || !data.exists()"
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -6,16 +6,13 @@
         ".write": "!data.exists()",
         "stage": {
           ".write": "data.parent().exists()",
-          ".validate": "newData.isString() && (newData.val() === 'waiting' || newData.val() === 'question' || newData.val() === 'code_entry' || newData.val() === 'result')"
+          ".validate": "newData.isString() && (newData.val() === 'waiting' || newData.val() === 'question' || newData.val() === 'result')"
         },
         "questionIndex": {
           ".write": "data.parent().exists()",
           ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 3"
         },
         "questionEndsAt": {
-          ".write": "data.parent().exists()"
-        },
-        "codeEntryEndsAt": {
           ".write": "data.parent().exists()"
         },
         "result": {
@@ -37,8 +34,20 @@
             "name": {
               ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 20"
             },
-            "submittedCode": {
-              ".write": "data.val() === null || !data.exists()"
+            "answers": {
+              "$questionKey": {
+                ".write": true,
+                ".validate": "newData.hasChildren(['value', 'submittedAt', 'submitted'])",
+                "value": {
+                  ".validate": "newData.isString() && newData.val().length === 1"
+                },
+                "submittedAt": {
+                  ".validate": "newData.isNumber()"
+                },
+                "submitted": {
+                  ".validate": "newData.isBoolean() && newData.val() === true"
+                }
+              }
             }
           }
         }

@@ -11,7 +11,6 @@ import {
   resetRoom,
   listenToRoom,
   startQuestion,
-  openCodeEntry,
   saveResult,
   verifyHostToken,
   getPlayers,
@@ -45,62 +44,73 @@ function getPlayerName(players, playerId) {
   return players?.[playerId]?.name ?? 'Unknown';
 }
 
+/** Format milliseconds as seconds with 2 decimals, e.g. "8.42s" */
+function formatDuration(ms) {
+  if (!ms || ms <= 0) return '–';
+  return (ms / 1000).toFixed(2) + 's';
+}
+
+/**
+ * Sort submissions into a ranked display order:
+ *  1. Eligible, by score desc then totalTimeMs asc
+ *  2. Ineligible, by answeredCount desc
+ */
+function rankSubmissions(submissions, winnerId) {
+  const entries = Object.entries(submissions || {}).map(([id, s]) => ({ id, ...s }));
+  entries.sort((a, b) => {
+    // Winner always first
+    if (a.id === winnerId) return -1;
+    if (b.id === winnerId) return 1;
+    // Eligible before ineligible
+    if (a.eligible !== b.eligible) return a.eligible ? -1 : 1;
+    // Among eligible: higher score first, then lower totalTimeMs
+    if (a.eligible && b.eligible) {
+      if (a.score !== b.score) return b.score - a.score;
+      return a.totalTimeMs - b.totalTimeMs;
+    }
+    // Among ineligible: more answered first
+    return b.answeredCount - a.answeredCount;
+  });
+  return entries;
+}
+
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export default function HostScreen({ onBack }) {
-  // Load any existing session once on mount
   const storedSession = useMemo(loadHostSession, []);
 
-  // step: 'loading' (auto-reconnect check) | 'setup' | 'game'
-  // If we have a stored session, start in 'loading' to auto-reconnect without
-  // requiring a manual click — this keeps auto-advance timers running across refreshes.
   const [step, setStep] = useState(() => storedSession ? 'loading' : 'setup');
-
-  // Form state — pre-filled from session if available
   const [roomCode, setRoomCode] = useState(() => storedSession?.roomCode ?? generateRoomCode());
   const [selectedCategory, setSelectedCategory] = useState(() => storedSession?.category ?? CATEGORIES[0].id);
-
-  // hostToken is stable for this browser session. On first visit a new UUID is
-  // generated; on refresh the same one is reloaded from sessionStorage.
   const [hostToken] = useState(() => storedSession?.hostToken ?? crypto.randomUUID());
 
-  // Game state driven entirely by Firebase
   const [room, setRoom] = useState(null);
   const [countdown, setCountdown] = useState(0);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  // Stable ref to room so timer callbacks always see latest value
   const roomRef = useRef(room);
   useEffect(() => { roomRef.current = room; }, [room]);
 
-  // ── Auto-reconnect on mount (no manual click needed) ──────────────────────
+  // ── Auto-reconnect on mount ────────────────────────────────────────────
   useEffect(() => {
     if (step !== 'loading' || !storedSession) return;
 
     verifyHostToken(storedSession.roomCode, storedSession.hostToken)
       .then((valid) => {
-        if (valid) {
-          setStep('game');
-        } else {
-          clearHostSession();
-          setStep('setup');
-        }
+        if (valid) setStep('game');
+        else { clearHostSession(); setStep('setup'); }
       })
-      .catch(() => {
-        // Firebase unreachable — fall back to setup
-        clearHostSession();
-        setStep('setup');
-      });
+      .catch(() => { clearHostSession(); setStep('setup'); });
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Subscribe to Firebase room once game step is active
+  // Subscribe to Firebase room
   useEffect(() => {
     if (step !== 'game') return;
     return listenToRoom(roomCode, setRoom);
   }, [step, roomCode]);
 
-  // ── Question countdown & auto-advance ──────────────────────────────────────
+  // ── Question countdown & auto-advance ──────────────────────────────────
   useEffect(() => {
     if (room?.stage !== 'question' || !room?.questionEndsAt) return;
 
@@ -111,8 +121,12 @@ export default function HostScreen({ onBack }) {
       if (advanced) return;
       advanced = true;
       try {
-        if (qIdx >= 3) await openCodeEntry(roomCode, hostToken);
-        else await startQuestion(roomCode, qIdx + 1, hostToken);
+        if (qIdx >= CODE_LENGTH - 1) {
+          // Last question done → compute result immediately
+          await computeAndSaveResult();
+        } else {
+          await startQuestion(roomCode, qIdx + 1, hostToken);
+        }
       } catch (e) { console.error('Auto-advance error:', e); }
     };
 
@@ -125,62 +139,39 @@ export default function HostScreen({ onBack }) {
     tick();
     const id = setInterval(tick, 500);
     return () => clearInterval(id);
-  }, [room?.stage, room?.questionIndex, room?.questionEndsAt, roomCode, hostToken]);
+  }, [room?.stage, room?.questionIndex, room?.questionEndsAt, roomCode, hostToken]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // ── Code-entry countdown & auto-show-result ────────────────────────────────
-  useEffect(() => {
-    if (room?.stage !== 'code_entry' || !room?.codeEntryEndsAt) return;
-
-    let advanced = false;
-
-    const advance = async () => {
-      if (advanced) return;
-      advanced = true;
-      try { await computeAndSaveResult(); }
-      catch (e) { console.error('Auto-result error:', e); }
-    };
-
-    const tick = () => {
-      const rem = Math.ceil((room.codeEntryEndsAt - serverNow()) / 1000);
-      setCountdown(Math.max(0, rem));
-      if (rem <= 0) advance();
-    };
-
-    tick();
-    const id = setInterval(tick, 500);
-    return () => clearInterval(id);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [room?.stage, room?.codeEntryEndsAt]);
-
-  // ── Result computation ────────────────────────────────────────────────────
+  // ── Result computation ─────────────────────────────────────────────────
 
   async function computeAndSaveResult() {
     const r = roomRef.current;
-    const set = getQuizSetById(r?.setId);
-    if (!set) return;
+    const quizSet = getQuizSetById(r?.setId);
+    if (!quizSet) return;
 
-    // Read players directly from Firebase to ensure we have the latest
-    // submissions (the local listener cache may lag behind auto-submit writes).
     const freshPlayers = await getPlayers(roomCode);
+    const correctCode = quizSet.questions.map((q) => String(q.answer)).join('');
+    const gameStartedAt = r?.gameStartedAt || 0;
+    const result = calculateResult(freshPlayers, correctCode, gameStartedAt);
 
-    const correctCode = set.questions.map((q) => String(q.answer)).join('');
-    const result = calculateResult(freshPlayers, correctCode);
-
-    // Convert finalists array to a map for Firebase storage
     const finalistsMap = result.finalists.reduce((acc, f) => ({ ...acc, [f.id]: true }), {});
 
-    // Build a submissions snapshot so the host result screen has reliable data
-    // regardless of Firebase listener timing.
+    // Build submissions snapshot with full timing data
     const submissions = {};
-    for (const [id, p] of Object.entries(freshPlayers)) {
-      const code = p.submittedCode ?? '';
-      let score = 0;
-      if (code) {
-        for (let i = 0; i < CODE_LENGTH; i++) {
-          if (code[i] === correctCode[i]) score++;
-        }
-      }
-      submissions[id] = { name: p.name, code, score };
+    for (const s of result.allScored) {
+      submissions[s.id] = {
+        name: s.name,
+        code: s.code,
+        score: s.score,
+        answeredCount: s.answeredCount,
+        eligible: s.eligible,
+        completedAt: s.completedAt,
+        totalTimeMs: s.totalTimeMs,
+      };
+    }
+
+    let message = 'Nobody eligible to win!';
+    if (result.winner) {
+      message = `${result.winner.name} wins!`;
     }
 
     await saveResult(roomCode, {
@@ -188,20 +179,18 @@ export default function HostScreen({ onBack }) {
       chosenPlayerId: result.winner?.id ?? null,
       finalists: finalistsMap,
       submissions,
-      message: result.winner ? `${result.winner.name} wins!` : 'Nobody got the correct code!',
+      message,
       type: result.type,
     }, hostToken);
-    // saveResult already sets stage to 'result' internally
   }
 
-  // ── Handlers ──────────────────────────────────────────────────────────────
+  // ── Handlers ───────────────────────────────────────────────────────────
 
   async function handleCreate() {
     const code = roomCode.trim().toUpperCase();
     if (code.length < 2) { setError('Room code must be at least 2 characters.'); return; }
     if (!selectedCategory) { setError('Please select an audience type.'); return; }
 
-    // Pick the next non-repeating set for this category
     const setId = getNextSetForCategory(selectedCategory);
 
     setLoading(true);
@@ -225,10 +214,8 @@ export default function HostScreen({ onBack }) {
     try {
       if (room?.stage === 'question') {
         const idx = room.questionIndex ?? 0;
-        if (idx >= 3) await openCodeEntry(roomCode, hostToken);
+        if (idx >= CODE_LENGTH - 1) await computeAndSaveResult();
         else await startQuestion(roomCode, idx + 1, hostToken);
-      } else if (room?.stage === 'code_entry') {
-        await computeAndSaveResult();
       }
     } catch (e) { setError(e.message); }
   }
@@ -239,9 +226,6 @@ export default function HostScreen({ onBack }) {
       await resetRoom(roomCode, hostToken);
     } catch (e) { setError(e.message); return; }
 
-    // Clear host session and return to the initial setup screen.
-    // The resetRoom call already incremented roundId and cleared players,
-    // so all connected player clients will be kicked back to the join form.
     clearHostSession();
     setRoom(null);
     setRoomCode(generateRoomCode());
@@ -250,17 +234,15 @@ export default function HostScreen({ onBack }) {
     setStep('setup');
   }
 
-  // ── Derived data ──────────────────────────────────────────────────────────
+  // ── Derived data ───────────────────────────────────────────────────────
 
   const quizSet = room?.setId ? getQuizSetById(room.setId) : null;
   const currentQuestion = quizSet?.questions[room?.questionIndex ?? 0] ?? null;
-  // Build players as array with id attached
   const players = room?.players
     ? Object.entries(room.players).map(([id, p]) => ({ id, ...p }))
     : [];
-  const submissions = players.filter((p) => p.submittedCode != null);
 
-  // ── RENDER: Loading (auto-reconnect in progress) ─────────────────────────
+  // ── RENDER: Loading ────────────────────────────────────────────────────
 
   if (step === 'loading') {
     return (
@@ -274,7 +256,7 @@ export default function HostScreen({ onBack }) {
     );
   }
 
-  // ── RENDER: Setup ─────────────────────────────────────────────────────────
+  // ── RENDER: Setup ──────────────────────────────────────────────────────
 
   if (step === 'setup') {
     return (
@@ -328,7 +310,7 @@ export default function HostScreen({ onBack }) {
     );
   }
 
-  // ── RENDER: Game ──────────────────────────────────────────────────────────
+  // ── RENDER: Game ───────────────────────────────────────────────────────
 
   const stage = room?.stage ?? 'waiting';
 
@@ -398,94 +380,86 @@ export default function HostScreen({ onBack }) {
         </div>
       )}
 
-      {/* ── Code Entry ── */}
-      {stage === 'code_entry' && (
-        <div className="stage-code-entry">
-          <div className={`countdown countdown-big ${countdown <= 5 ? 'countdown-urgent' : ''}`}>
-            {countdown}s
-          </div>
-          <h2 className="code-entry-title">COLLECTING ANSWERS</h2>
-          <p className="code-entry-hint">Player answers are being submitted automatically</p>
-
-          <div className="submission-status">
-            <span className="submission-count">{submissions.length}</span>
-            <span className="submission-label"> / {players.length} submitted</span>
-          </div>
-
-          <div className="submission-names">
-            {submissions.map((p) => (
-              <span key={p.id} className="submitted-badge">{p.name} ✓</span>
-            ))}
-          </div>
-
-          <div className="host-actions">
-            <button className="btn btn-primary" onClick={handleSkip}>
-              Show Result Now
-            </button>
-          </div>
-        </div>
-      )}
-
       {/* ── Result ── */}
-      {stage === 'result' && room?.result && (
-        <div className="stage-result">
-          <p className="result-label">CORRECT CODE</p>
-          <div className="correct-code-display">
-            {room.result.correctCode.split('').map((d, i) => (
-              <span key={i} className="code-digit">{d}</span>
-            ))}
-          </div>
-
-          {room.result.chosenPlayerId ? (
-            <>
-              <div className="winner-banner">
-                🏆 {getPlayerName(room.players, room.result.chosenPlayerId)}
-              </div>
-              <p className="result-type-label">
-                {room.result.type === 'exact' && 'Exact match!'}
-                {room.result.type === 'exact_random' && 'Multiple exact matches — winner picked randomly'}
-                {room.result.type === 'partial' && 'Closest answer wins'}
-              </p>
-            </>
-          ) : (
-            <div className="no-winner">No winner this round</div>
-          )}
-
-          {Object.keys(room.result.finalists ?? {}).length > 1 && (
-            <div className="finalist-pool">
-              <p className="finalist-title">Finalists</p>
-              <div className="finalist-list">
-                {Object.keys(room.result.finalists).map((id) => (
-                  <span key={id} className="finalist-badge">
-                    {getPlayerName(room.players, id)}
-                  </span>
-                ))}
-              </div>
+      {stage === 'result' && room?.result && (() => {
+        const res = room.result;
+        const ranked = rankSubmissions(res.submissions, res.chosenPlayerId);
+        return (
+          <div className="stage-result">
+            <p className="result-label">CORRECT CODE</p>
+            <div className="correct-code-display">
+              {res.correctCode.split('').map((d, i) => (
+                <span key={i} className="code-digit">{d}</span>
+              ))}
             </div>
-          )}
 
-          <div className="all-submissions">
-            <p className="submissions-title">All submissions</p>
-            {Object.entries(room.result.submissions ?? {}).map(([id, s]) => (
-              <div
-                key={id}
-                className={`submission-row ${id === room.result.chosenPlayerId ? 'submission-winner' : ''}`}
-              >
-                <span>{s.name}</span>
-                <span className="submission-score">{s.code ? `${s.score}/${CODE_LENGTH}` : '—'}</span>
-                <span className="submission-code">{s.code || '—'}</span>
-              </div>
-            ))}
-          </div>
+            {res.chosenPlayerId ? (
+              <>
+                <div className="winner-banner">
+                  🏆 {getPlayerName(room.players, res.chosenPlayerId)}
+                </div>
+                <p className="result-type-label">
+                  {res.type === 'exact' && 'Exact match!'}
+                  {res.type === 'exact_speed' && 'Exact match — fastest player wins!'}
+                  {res.type === 'exact_random' && 'Exact match — tied on speed, random pick'}
+                  {res.type === 'partial' && 'Closest answer wins'}
+                  {res.type === 'partial_speed' && 'Closest answer — fastest player wins!'}
+                  {res.type === 'partial_random' && 'Closest answer — tied on speed, random pick'}
+                </p>
+              </>
+            ) : (
+              <div className="no-winner">No winner this round</div>
+            )}
 
-          <div className="host-actions">
-            <button className="btn btn-primary btn-large" onClick={handleReset}>
-              🔄 Reset Room
-            </button>
+            <div className="leaderboard" style={{ width: '100%', maxWidth: 640 }}>
+              <p className="submissions-title">LEADERBOARD</p>
+              {ranked.map((s, rank) => {
+                const isWinner = s.id === res.chosenPlayerId;
+                const codeDisplay = s.code.replace(/-/g, '–');
+                return (
+                  <div
+                    key={s.id}
+                    className={`submission-row ${isWinner ? 'submission-winner' : ''}`}
+                    style={{ flexDirection: 'column', alignItems: 'flex-start', gap: 4, padding: '12px 16px' }}
+                  >
+                    <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center' }}>
+                      <span style={{ fontWeight: 700, fontSize: '1.1rem' }}>
+                        {rank + 1}. {s.name} {isWinner ? '🏆' : ''}
+                      </span>
+                      <span className="submission-code">{codeDisplay}</span>
+                    </div>
+                    <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', fontSize: '0.85rem' }}>
+                      <span>
+                        Score: <strong style={{ color: s.eligible && s.score === CODE_LENGTH ? 'var(--green)' : 'var(--text)' }}>
+                          {s.eligible ? `${s.score}/${CODE_LENGTH}` : `${s.answeredCount}/${CODE_LENGTH} answered`}
+                        </strong>
+                      </span>
+                      <span>
+                        Time: <strong>{formatDuration(s.totalTimeMs)}</strong>
+                      </span>
+                      <span>
+                        Eligible: <strong style={{ color: s.eligible ? 'var(--green)' : 'var(--red)' }}>
+                          {s.eligible ? 'Yes' : 'No'}
+                        </strong>
+                      </span>
+                      {!s.eligible && (
+                        <span style={{ color: 'var(--red)' }}>INCOMPLETE</span>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            <div className="host-actions">
+              <button className="btn btn-primary btn-large" onClick={handleReset}>
+                🔄 Reset Room
+              </button>
+            </div>
+            {error && <p className="error-msg">{error}</p>}
           </div>
-          {error && <p className="error-msg">{error}</p>}
-        </div>
-      )}
+        );
+      })()}
     </div>
   );
 }

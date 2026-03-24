@@ -13,8 +13,8 @@ import {
   startQuestion,
   openCodeEntry,
   saveResult,
-  updateStage,
   verifyHostToken,
+  getPlayers,
 } from '../lib/realtimeDb';
 
 // ─── Session persistence (survives page refresh, lost on tab close) ───────────
@@ -159,16 +159,35 @@ export default function HostScreen({ onBack }) {
     const set = getQuizSetById(r?.setId);
     if (!set) return;
 
+    // Read players directly from Firebase to ensure we have the latest
+    // submissions (the local listener cache may lag behind auto-submit writes).
+    const freshPlayers = await getPlayers(roomCode);
+
     const correctCode = set.questions.map((q) => String(q.answer)).join('');
-    const result = calculateResult(r?.players || {}, correctCode);
+    const result = calculateResult(freshPlayers, correctCode);
 
     // Convert finalists array to a map for Firebase storage
     const finalistsMap = result.finalists.reduce((acc, f) => ({ ...acc, [f.id]: true }), {});
+
+    // Build a submissions snapshot so the host result screen has reliable data
+    // regardless of Firebase listener timing.
+    const submissions = {};
+    for (const [id, p] of Object.entries(freshPlayers)) {
+      const code = p.submittedCode ?? '';
+      let score = 0;
+      if (code) {
+        for (let i = 0; i < CODE_LENGTH; i++) {
+          if (code[i] === correctCode[i]) score++;
+        }
+      }
+      submissions[id] = { name: p.name, code, score };
+    }
 
     await saveResult(roomCode, {
       correctCode,
       chosenPlayerId: result.winner?.id ?? null,
       finalists: finalistsMap,
+      submissions,
       message: result.winner ? `${result.winner.name} wins!` : 'Nobody got the correct code!',
       type: result.type,
     }, hostToken);
@@ -239,7 +258,7 @@ export default function HostScreen({ onBack }) {
   const players = room?.players
     ? Object.entries(room.players).map(([id, p]) => ({ id, ...p }))
     : [];
-  const submissions = players.filter((p) => p.submittedCode !== null);
+  const submissions = players.filter((p) => p.submittedCode != null);
 
   // ── RENDER: Loading (auto-reconnect in progress) ─────────────────────────
 
@@ -447,26 +466,16 @@ export default function HostScreen({ onBack }) {
 
           <div className="all-submissions">
             <p className="submissions-title">All submissions</p>
-            {players.map((p) => {
-              const code = p.submittedCode ?? '';
-              const correctCode = room.result.correctCode;
-              let score = 0;
-              if (code && correctCode) {
-                for (let i = 0; i < CODE_LENGTH; i++) {
-                  if (code[i] === correctCode[i]) score++;
-                }
-              }
-              return (
-                <div
-                  key={p.id}
-                  className={`submission-row ${p.id === room.result.chosenPlayerId ? 'submission-winner' : ''}`}
-                >
-                  <span>{p.name}</span>
-                  <span className="submission-score">{code ? `${score}/${CODE_LENGTH}` : '—'}</span>
-                  <span className="submission-code">{code || '—'}</span>
-                </div>
-              );
-            })}
+            {Object.entries(room.result.submissions ?? {}).map(([id, s]) => (
+              <div
+                key={id}
+                className={`submission-row ${id === room.result.chosenPlayerId ? 'submission-winner' : ''}`}
+              >
+                <span>{s.name}</span>
+                <span className="submission-score">{s.code ? `${s.score}/${CODE_LENGTH}` : '—'}</span>
+                <span className="submission-code">{s.code || '—'}</span>
+              </div>
+            ))}
           </div>
 
           <div className="host-actions">

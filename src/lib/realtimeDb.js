@@ -180,35 +180,43 @@ export async function getRoundId(roomCode) {
   return snap.exists() ? snap.val() : null;
 }
 
+/**
+ * Read the current players object directly from Firebase (fresh, not cached).
+ */
+export async function getPlayers(roomCode) {
+  const snap = await get(ref(db, `rooms/${roomCode}/players`));
+  return snap.exists() ? snap.val() : {};
+}
+
 // ─── GAMEPLAY ─────────────────────────────────────────────────────────────────
 
 /**
  * Submit a player's 4-digit code.
- * - Validates format (exactly 4 digits, each 1–4)
+ * - Validates format (exactly 4 digits, each 0–9)
  * - Checks room is in code_entry stage
- * - Transaction prevents double-submit at the app layer
- *   (Firebase rules also enforce submittedCode immutability at the DB layer)
+ * - Uses update() for reliability (Firebase rules enforce submittedCode
+ *   immutability at the DB layer via the write-once rule)
  * Returns null on success, error string on failure.
  */
 export async function submitCode(roomCode, playerId, code) {
-  if (!isValidCode(code)) return 'Invalid code. Use exactly 4 digits, each between 1 and 4.';
+  if (!isValidCode(code)) return 'Invalid code. Use exactly 4 digits (0–9).';
 
   const stageSnap = await get(ref(db, `rooms/${roomCode}/stage`));
   if (!stageSnap.exists()) return 'Room not found.';
   if (stageSnap.val() !== 'code_entry') return 'Code entry is not open right now.';
 
-  const playerRef = ref(db, `rooms/${roomCode}/players/${playerId}`);
-  let errorMsg = null;
+  try {
+    await update(ref(db, `rooms/${roomCode}/players/${playerId}`), {
+      submittedCode: code,
+      submittedAt: Date.now(),
+    });
+  } catch (e) {
+    // Write-once rule rejection means already submitted — not an error
+    if (e?.code === 'PERMISSION_DENIED') return null;
+    throw e;
+  }
 
-  await runTransaction(playerRef, (player) => {
-    if (!player) return player; // local cache empty — let Firebase retry
-    if (player.submittedCode !== null) { errorMsg = 'You have already submitted your code.'; return; }
-    player.submittedCode = code;
-    player.submittedAt = Date.now();
-    return player;
-  });
-
-  return errorMsg;
+  return null;
 }
 
 /**

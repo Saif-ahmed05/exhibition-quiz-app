@@ -179,13 +179,16 @@ export default function PlayerScreen({ onBack }) {
     setPhase('game');
   }
 
+  // Capture the question index the input was rendered for via the data attribute,
+  // so a stale onChange can never write to the wrong slot.
   function handleDigitEntry(e) {
-    if (activeBox === null) return;
+    const targetBox = Number(e.target.dataset.qidx);
+    if (Number.isNaN(targetBox)) return;
     const raw = e.target.value.replace(/\D/g, '');
     const digit = raw.slice(-1);
     setDigits((prev) => {
       const next = [...prev];
-      next[activeBox] = digit;
+      next[targetBox] = digit;
       return next;
     });
   }
@@ -326,10 +329,12 @@ export default function PlayerScreen({ onBack }) {
           {renderDigitBoxes(qIdx)}
 
           <input
+            key={qIdx}
             ref={inputRef}
             className="prog-hidden-input"
             type="tel"
             inputMode="numeric"
+            data-qidx={qIdx}
             value={digits[qIdx] || ''}
             onChange={handleDigitEntry}
             autoFocus

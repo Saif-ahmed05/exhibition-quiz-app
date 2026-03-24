@@ -11,7 +11,7 @@
 export function calculateResult(players, correctCode) {
   // Build a flat list of players who actually submitted
   const submissions = Object.entries(players || {})
-    .filter(([, p]) => p.submittedCode !== null && p.submittedCode !== undefined)
+    .filter(([, p]) => p.submittedCode != null)
     .map(([id, p]) => ({ id, name: p.name, code: p.submittedCode }));
 
   if (submissions.length === 0) {

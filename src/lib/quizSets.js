@@ -2,7 +2,7 @@
 // Cyber Security Awareness quiz sets for a live exhibition game.
 // Each set must have exactly 4 questions.
 // Each question has 4 options. `answer` is the correct option number (1–4).
-// The correct code = answers concatenated, e.g. answers [2,4,1,1] → code "2411"
+// The correct code = answers concatenated, e.g. answers [3,2,3,3] → code "3233"
 //
 // CATEGORIES define the audience types shown in the host UI.
 // QUIZ_SETS is a flat array; each set has a unique `id` and a `category` linking
@@ -22,37 +22,27 @@ export const QUIZ_SETS = [
     category: 'technical',
     questions: [
       {
-        text: 'Which protocol ensures encrypted communication between a browser and a web server?',
-        options: ['FTP', 'HTTPS', 'Telnet', 'SMTP'],
-        answer: 2, // HTTPS
+        text: 'Which is the best clue that a login page may be fake?',
+        options: ['The page has a logo', 'The page uses blue colors', 'The domain name is slightly changed', 'The page loads fast'],
+        answer: 3, // The domain name is slightly changed
       },
       {
-        text: 'What type of attack exploits input fields to execute malicious SQL commands on a database?',
-        options: ['XSS', 'DDoS', 'SQL Injection', 'Phishing'],
-        answer: 3, // SQL Injection
+        text: 'In a phishing attack, what usually happens after the victim enters username and password?',
+        options: ['The browser deletes the page', 'The fake page sends the data to the attacker', 'The website becomes slower', 'The phone restarts'],
+        answer: 2, // The fake page sends the data to the attacker
       },
       {
-        text: 'In a Zero Trust security model, what is the default assumption about any user or device?',
-        options: [
-          'Trusted if on the corporate network',
-          'Trusted after first login',
-          'Never trusted — always verify',
-          'Trusted if using a VPN',
-        ],
-        answer: 3, // Never trusted — always verify
+        text: 'Which item is most useful for reducing account compromise after a password leak?',
+        options: ['Turn off Wi-Fi', 'Increase screen brightness', 'Enable 2-step verification', 'Clear browser history only'],
+        answer: 3, // Enable 2-step verification
       },
       {
-        text: 'What does a firewall primarily do?',
-        options: [
-          'Encrypts stored files',
-          'Filters network traffic based on rules',
-          'Scans for viruses on disk',
-          'Manages user passwords',
-        ],
-        answer: 2, // Filters network traffic based on rules
+        text: 'Which app permission request should be considered suspicious for a simple torch app?',
+        options: ['Flashlight access', 'Battery usage', 'Location access', 'Screen brightness'],
+        answer: 3, // Location access
       },
     ],
-    // Correct code: 2332
+    // Correct code: 3233
   },
 
   // ─── Technical People — Set 2 ───────────────────────────────────────────────
@@ -62,142 +52,27 @@ export const QUIZ_SETS = [
     category: 'technical',
     questions: [
       {
-        text: 'Which of the following is a common indicator of a phishing email?',
-        options: [
-          'Sent from a known colleague',
-          'Contains a mismatched or suspicious URL',
-          'Has a company logo',
-          'Written in formal language',
-        ],
-        answer: 2, // Contains a mismatched or suspicious URL
+        text: 'Why do attackers often use urgency in phishing messages?',
+        options: ['To make the internet faster', 'To stop users from thinking carefully', 'To improve password strength', 'To reduce file size'],
+        answer: 2, // To stop users from thinking carefully
       },
       {
-        text: 'What does MFA stand for in cyber security?',
-        options: [
-          'Multiple File Access',
-          'Multi-Factor Authentication',
-          'Main Firewall Application',
-          'Managed Filter Architecture',
-        ],
-        answer: 2, // Multi-Factor Authentication
+        text: 'Which example is most likely a malicious domain?',
+        options: ['google.com', 'amazon.com', 'school.edu', 'amazon-offer.xyz'],
+        answer: 4, // amazon-offer.xyz
       },
       {
-        text: 'What type of malware locks your files and demands payment to unlock them?',
-        options: ['Spyware', 'Adware', 'Worm', 'Ransomware'],
-        answer: 4, // Ransomware
+        text: 'How does AI help cyber attackers today?',
+        options: ['It automatically repairs devices', 'It makes fake emails, chats, voices, and videos more believable', 'It blocks all fake websites', 'It removes malware from phones'],
+        answer: 2, // It makes fake emails, chats, voices, and videos more believable
       },
       {
-        text: 'What is the purpose of penetration testing?',
-        options: [
-          'To install security patches',
-          'To back up critical data',
-          'To simulate attacks and find vulnerabilities',
-          'To monitor network bandwidth',
-        ],
-        answer: 3, // To simulate attacks and find vulnerabilities
+        text: 'Which is the safest action before logging into an account from a link?',
+        options: ['Check the full URL carefully', 'Click quickly before the page closes', 'Ignore spelling mistakes', 'Send your OTP first'],
+        answer: 1, // Check the full URL carefully
       },
     ],
-    // Correct code: 2243
-  },
-
-  // ─── Normal People — Set 1 ──────────────────────────────────────────────────
-
-  {
-    id: 'normal_1',
-    category: 'normal',
-    questions: [
-      {
-        text: 'You receive an email saying "Your account will be closed in 24 hours — click here to verify." What should you do?',
-        options: [
-          'Click the link immediately',
-          'Forward it to all your contacts',
-          'Don\'t click — go to the official website directly to check',
-          'Reply and ask for more details',
-        ],
-        answer: 3, // Don't click — go to the official website directly
-      },
-      {
-        text: 'What is the safest type of password?',
-        options: [
-          'Your birthday',
-          'A long mix of letters, numbers, and symbols',
-          'The word "password"',
-          'Your pet\'s name',
-        ],
-        answer: 2, // A long mix of letters, numbers, and symbols
-      },
-      {
-        text: 'What should you do before downloading an app on your phone?',
-        options: [
-          'Download it from any website',
-          'Check the reviews, developer, and permissions first',
-          'Ask a friend to send you the file',
-          'Just install it if the icon looks nice',
-        ],
-        answer: 2, // Check reviews, developer, and permissions
-      },
-      {
-        text: 'What does the padlock icon in your browser\'s address bar mean?',
-        options: [
-          'The website is government approved',
-          'The website is free of viruses',
-          'The connection between you and the site is encrypted',
-          'The website cannot track you',
-        ],
-        answer: 3, // The connection is encrypted
-      },
-    ],
-    // Correct code: 3223
-  },
-
-  // ─── Normal People — Set 2 ──────────────────────────────────────────────────
-
-  {
-    id: 'normal_2',
-    category: 'normal',
-    questions: [
-      {
-        text: 'Why is it risky to use the same password for multiple accounts?',
-        options: [
-          'It uses too much memory on your phone',
-          'Websites don\'t allow it',
-          'If one account is hacked, all your accounts are at risk',
-          'It makes your internet slower',
-        ],
-        answer: 3, // If one account is hacked, all are at risk
-      },
-      {
-        text: 'What is "two-factor authentication" (2FA)?',
-        options: [
-          'Using two different passwords',
-          'Logging in from two devices',
-          'A second verification step, like a code sent to your phone',
-          'Having two antivirus programs installed',
-        ],
-        answer: 3, // A second verification step
-      },
-      {
-        text: 'You find a USB drive on the ground at work. What should you do?',
-        options: [
-          'Plug it into your computer to see what\'s on it',
-          'Give it to a colleague to check',
-          'Hand it to your IT department — do not plug it in',
-          'Format it and use it for yourself',
-        ],
-        answer: 3, // Hand it to IT — do not plug it in
-      },
-      {
-        text: 'What is the best thing to do when your software asks you to install an update?',
-        options: [
-          'Ignore it — updates slow down your device',
-          'Install it as soon as possible — updates fix security holes',
-          'Wait a year to make sure it\'s safe',
-          'Uninstall the software instead',
-        ],
-        answer: 2, // Install it as soon as possible
-      },
-    ],
-    // Correct code: 3332
+    // Correct code: 2421
   },
 
   // ─── School Students — Set 1 ────────────────────────────────────────────────
@@ -207,47 +82,27 @@ export const QUIZ_SETS = [
     category: 'students',
     questions: [
       {
-        text: 'A stranger online asks for your home address. What should you do?',
-        options: [
-          'Tell them — they seem friendly',
-          'Give a fake address',
-          'Never share personal info with strangers online',
-          'Ask for their address first',
-        ],
-        answer: 3, // Never share personal info with strangers
+        text: 'What is phishing?',
+        options: ['A video game', 'A fake page that steals what you type', 'A type of camera', 'A strong password'],
+        answer: 2, // A fake page that steals what you type
       },
       {
-        text: 'What is a strong password?',
-        options: [
-          '123456',
-          'Your name in lowercase',
-          'A long mix of letters, numbers, and special characters',
-          'The word "password"',
-        ],
-        answer: 3, // A long mix of letters, numbers, and special characters
+        text: 'Which one looks suspicious?',
+        options: ['google.com', 'gooogle.com', 'school.com', 'youtube.com'],
+        answer: 2, // gooogle.com
       },
       {
-        text: 'You get a message from a "friend" asking for your password. What should you do?',
-        options: [
-          'Send it — they\'re your friend',
-          'Never share your password with anyone',
-          'Only share it if they say "please"',
-          'Post it on social media so you don\'t forget',
-        ],
-        answer: 2, // Never share your password with anyone
+        text: 'What should you check before logging in?',
+        options: ['The color of the page', 'The number of pictures', 'The full website link', 'The phone wallpaper'],
+        answer: 3, // The full website link
       },
       {
-        text: 'What does it mean when a website address starts with "https"?',
-        options: [
-          'The site is very fast',
-          'The site is only for adults',
-          'The connection to the site is secure and encrypted',
-          'The site is free to use',
-        ],
-        answer: 3, // The connection is secure and encrypted
+        text: 'If a stranger asks for your OTP, what should you do?',
+        options: ['Share it quickly', 'Share only half', 'Never share it', 'Post it online'],
+        answer: 3, // Never share it
       },
     ],
-    // Correct code: 3323
+    // Correct code: 2233
   },
 
   // ─── School Students — Set 2 ────────────────────────────────────────────────
@@ -257,47 +112,27 @@ export const QUIZ_SETS = [
     category: 'students',
     questions: [
       {
-        text: 'Someone you don\'t know sends you a link in a game chat. What should you do?',
-        options: [
-          'Click it — it might be a free prize',
-          'Don\'t click it — it could be dangerous',
-          'Share it with your friends',
-          'Click it if it looks cool',
-        ],
-        answer: 2, // Don't click it
+        text: 'What makes a strong password better?',
+        options: ['Using your name only', 'Using 12+ characters', 'Using only numbers', 'Using "123456"'],
+        answer: 2, // Using 12+ characters
       },
       {
-        text: 'What information should you NEVER share online?',
-        options: [
-          'Your favourite colour',
-          'Your password and home address',
-          'Your favourite movie',
-          'Your favourite food',
-        ],
-        answer: 2, // Your password and home address
+        text: 'Which password is stronger?',
+        options: ['saif123', 'password', 'MfPws2019@', '11111111'],
+        answer: 3, // MfPws2019@
       },
       {
-        text: 'What should you do if you see something scary or upsetting online?',
-        options: [
-          'Keep it to yourself',
-          'Share it with other kids',
-          'Tell a trusted adult like a parent or teacher',
-          'Try to find more of it',
-        ],
-        answer: 3, // Tell a trusted adult
+        text: 'If an app asks for too many permissions, what should you do?',
+        options: ['Accept everything', 'Check if the permission makes sense', 'Ignore the app name', 'Install it faster'],
+        answer: 2, // Check if the permission makes sense
       },
       {
-        text: 'Why should you log out of your account on a shared computer?',
-        options: [
-          'To make the computer faster',
-          'So the next person can\'t access your stuff',
-          'Because it saves electricity',
-          'You don\'t need to — it\'s fine to stay logged in',
-        ],
-        answer: 2, // So the next person can't access your stuff
+        text: 'What should you do if your account may be hacked?',
+        options: ['Do nothing', 'Change your password quickly', 'Delete your photos only', 'Turn off the screen'],
+        answer: 2, // Change your password quickly
       },
     ],
-    // Correct code: 2232
+    // Correct code: 2322
   },
 
   // ─── School Students — Set 3 ────────────────────────────────────────────────
@@ -307,47 +142,27 @@ export const QUIZ_SETS = [
     category: 'students',
     questions: [
       {
-        text: 'What is cyberbullying?',
-        options: [
-          'Playing video games online',
-          'Being mean to someone using phones or the internet',
-          'Sending funny memes to friends',
-          'Watching too many YouTube videos',
-        ],
-        answer: 2, // Being mean to someone using phones or the internet
+        text: 'A story disappears after 24 hours. Does that mean it is fully gone?',
+        options: ['Yes, always', 'No, it can still be copied or screen-recorded', 'Yes, if it has music', 'Yes, if friends liked it'],
+        answer: 2, // No, it can still be copied or screen-recorded
       },
       {
-        text: 'An app asks to access your camera, microphone, and contacts just to play a simple game. Is this normal?',
-        options: [
-          'Yes — all apps need that',
-          'No — a simple game shouldn\'t need all that access',
-          'Only if the game is popular',
-          'Yes — just tap "Allow" always',
-        ],
-        answer: 2, // No — a simple game shouldn't need all that access
+        text: 'Before posting online, what is a smart question to ask?',
+        options: ['Will this get many likes?', 'Is the font nice?', 'Would I be okay if a teacher or parent sees this?', 'Is my battery full?'],
+        answer: 3, // Would I be okay if a teacher or parent sees this?
       },
       {
-        text: 'What should you do if someone online asks you to keep a secret from your parents?',
-        options: [
-          'Keep the secret — they trust you',
-          'Tell only your best friend',
-          'Tell a parent or trusted adult right away',
-          'Ignore it and keep chatting',
-        ],
-        answer: 3, // Tell a parent or trusted adult right away
+        text: 'Which emotion do scammers often use?',
+        options: ['Fear and urgency', 'Happiness and peace', 'Sleep and silence', 'Exercise and health'],
+        answer: 1, // Fear and urgency
       },
       {
-        text: 'Why is it important to use different passwords for different accounts?',
-        options: [
-          'So you can remember which account is which',
-          'It doesn\'t matter — one password is fine',
-          'If one gets stolen, the others stay safe',
-          'Because websites make you do it',
-        ],
-        answer: 3, // If one gets stolen, the others stay safe
+        text: 'Which is safer?',
+        options: ['Reusing the same password everywhere', 'Using different passwords for different accounts', 'Sharing passwords with friends', 'Writing your password publicly'],
+        answer: 2, // Using different passwords for different accounts
       },
     ],
-    // Correct code: 2233
+    // Correct code: 2312
   },
 
   // ─── School Students — Set 4 ────────────────────────────────────────────────
@@ -357,46 +172,86 @@ export const QUIZ_SETS = [
     category: 'students',
     questions: [
       {
-        text: 'What is a "virus" on a computer?',
-        options: [
-          'A bug that makes you sick',
-          'A harmful program that can damage your files or spy on you',
-          'A type of computer game',
-          'An update from the computer company',
-        ],
-        answer: 2, // A harmful program
+        text: 'What is one sign of a fake app?',
+        options: ['Trusted developer and good reviews', 'Strange name and unnecessary permissions', 'Many downloads from official store', 'Clear company details'],
+        answer: 2, // Strange name and unnecessary permissions
       },
       {
-        text: 'You receive a pop-up that says "You won a free iPhone! Click here!" What should you do?',
-        options: [
-          'Click it — free phones are great!',
-          'Close it — it\'s almost certainly a scam',
-          'Enter your details to claim it',
-          'Share it with friends so they can win too',
-        ],
-        answer: 2, // Close it — it's almost certainly a scam
+        text: 'If you clicked something suspicious, what should you do first?',
+        options: ['Change your password', 'Post about it online', 'Ignore it', 'Open more links'],
+        answer: 1, // Change your password
       },
       {
-        text: 'Is it safe to connect to any free Wi-Fi you find in public?',
-        options: [
-          'Yes — free Wi-Fi is always safe',
-          'No — hackers can use fake Wi-Fi to steal your data',
-          'Only if it doesn\'t ask for a password',
-          'Yes — as long as the signal is strong',
-        ],
-        answer: 2, // No — hackers can use fake Wi-Fi
+        text: 'What does 2-step verification do?',
+        options: ['Makes your phone louder', 'Adds extra protection to your account', 'Deletes fake apps', 'Changes your email address'],
+        answer: 2, // Adds extra protection to your account
       },
       {
-        text: 'Before posting a photo online, what should you think about?',
-        options: [
-          'Nothing — just post it',
-          'Whether it shows private info like your school name or address',
-          'How many likes it will get',
-          'Only whether the photo looks cool',
-        ],
-        answer: 2, // Whether it shows private info
+        text: 'Who should a student tell if something feels unsafe online?',
+        options: ['A scammer', 'Nobody', 'A trusted adult, parent, or teacher', 'Any stranger online'],
+        answer: 3, // A trusted adult, parent, or teacher
       },
     ],
-    // Correct code: 2222
+    // Correct code: 2123
+  },
+
+  // ─── Normal People — Set 1 ──────────────────────────────────────────────────
+
+  {
+    id: 'normal_1',
+    category: 'normal',
+    questions: [
+      {
+        text: 'Which message is most likely a scam?',
+        options: ['"Your account will be blocked. Send OTP now."', '"Your class starts at 9 AM."', '"Meeting moved to Monday."', '"Lunch is ready."'],
+        answer: 1, // "Your account will be blocked. Send OTP now."
+      },
+      {
+        text: 'What should you never share with anyone?',
+        options: ['Your favorite color', 'Your OTP', 'Your shoe size', 'Your birthday month only'],
+        answer: 2, // Your OTP
+      },
+      {
+        text: 'Which is the safest way to open an important account?',
+        options: ['Use the official app or type the official website yourself', 'Click every message link', 'Trust any forwarded link', 'Use any random pop-up'],
+        answer: 1, // Use the official app or type the official website yourself
+      },
+      {
+        text: 'If your password is stolen, what should you do?',
+        options: ['Keep using it', 'Change that password and similar passwords', 'Tell everyone the password', 'Buy a new phone immediately'],
+        answer: 2, // Change that password and similar passwords
+      },
+    ],
+    // Correct code: 1212
+  },
+
+  // ─── Normal People — Set 2 ──────────────────────────────────────────────────
+
+  {
+    id: 'normal_2',
+    category: 'normal',
+    questions: [
+      {
+        text: 'Why do fake pages work so well?',
+        options: ['Because they are always faster', 'Because they look familiar and real', 'Because they have more ads', 'Because they are colorful'],
+        answer: 2, // Because they look familiar and real
+      },
+      {
+        text: 'Which is a good password habit?',
+        options: ['Use one password for all accounts', 'Use personal details only', 'Use a long password with letters, numbers, and symbols', 'Share it with friends for safety'],
+        answer: 3, // Use a long password with letters, numbers, and symbols
+      },
+      {
+        text: 'How can AI be misused by scammers?',
+        options: ['To make fake voice calls and realistic scam messages', 'To repair your phone battery', 'To clean your email inbox', 'To improve your camera automatically'],
+        answer: 1, // To make fake voice calls and realistic scam messages
+      },
+      {
+        text: 'What should you do if you feel something online is suspicious?',
+        options: ['Rush and complete it', 'Stop, check carefully, and act fast if needed', 'Ignore all security warnings', 'Share the link with others'],
+        answer: 2, // Stop, check carefully, and act fast if needed
+      },
+    ],
+    // Correct code: 2312
   },
 ];
